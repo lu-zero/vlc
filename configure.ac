@@ -2426,6 +2426,33 @@ AS_IF([test "${enable_dxva2}" != "no"], [
 AM_CONDITIONAL([HAVE_AVCODEC_DXVA2], [test "${have_avcodec_dxva2}" = "yes"])
 
 dnl
+dnl qsv needs avcodec
+dnl
+AC_ARG_ENABLE(qsv,
+  [  --enable-qsv          QSV  support (default no)])
+
+have_avcodec_qsv="no"
+AS_IF([test "${enable_qsv}" = "yes"], [
+    AS_IF([test "x${have_avcodec}" = "xyes"], [
+        AC_CHECK_HEADERS(libavcodec/qsv.h, [
+            have_avcodec_qsv="yes"
+        ],[
+            AC_MSG_ERROR([qsv not supported.])
+        ])
+    ],[
+        AC_MSG_ERROR([--enable-qsv and --disable-avcodec options are mutually exclusive.])
+    ])
+])
+
+AS_IF([test "${have_avcodec_qsv}" = "yes"], [
+    SAVE_LIBS=$LIBS
+    LIBS="$LIBS $AVCODEC_LIBS"
+    AC_CHECK_FUNCS([av_qsv_default_init])
+    LIBS=$SAVE_LIBS
+])
+AM_CONDITIONAL([HAVE_AVCODEC_QSV], [test "${have_avcodec_qsv}" = "yes"])
+
+dnl
 dnl vda needs avcodec
 dnl
 AC_ARG_ENABLE(vda,
@@ -2812,7 +2839,7 @@ AC_ARG_WITH(x262-tree,
   [ --with-x262-tree=PATH      H262 encoding module with libx262 (static linking)],[],[])
   if test "${with_x262_tree}" != "no" -a -n "${with_x262_tree}"
   then
-    real_x262_tree="̧`cd ${with_x262_tree} 2>/dev/null && pwd`"
+    real_x262_tree="`cd ${with_x262_tree} 2>/dev/null && pwd`"
     if test -z "${real_x262_tree}"
     then
       AC_MSG_RESULT(no)
@@ -2860,7 +2887,7 @@ AC_ARG_WITH(x26410b-tree,
   [ --with-x26410b-tree=PATH      H264 10-bit encoding module with libx264 (static linking)],[],[])
   if test "${with_x26410b_tree}" != "no" -a -n "${with_x26410b_tree}"
   then
-    real_x26410b_tree="̧`cd ${with_x26410b_tree} 2>/dev/null && pwd`"
+    real_x26410b_tree="`cd ${with_x26410b_tree} 2>/dev/null && pwd`"
     if test -z "${real_x26410b_tree}"
     then
       AC_MSG_RESULT(no)
